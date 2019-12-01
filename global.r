@@ -98,5 +98,5 @@ r22 <- r2 %>% gather(key = `Type of Bias`, value = Bias, Confounding:Overall) %>
   replace_na(list(Bias = "Uncertain"))
 color_table <- tibble(
   Bias = c("Critical", "Serious", "Moderate", "Low", "Uncertain"),
-  Color = c("firebrick2", "darkorange","yellow", "green2", "floralwhite")
+  Color = c(rev(RColorBrewer::brewer.pal(4, "Reds")), "#bdbdbd")
 )
