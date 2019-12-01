@@ -5,9 +5,25 @@ dashboardPage(
     sidebarMenu(
       menuItem("Getting Started", tabName = "start", icon = icon("piggy-bank")),
       menuItem("Descriptive Plots", tabName = "eda", icon = icon("chart-bar")),
-      menuItem("Forest Plot", tabName = "forest", icon = icon("tree")),
-      menuItem("Summary", tabName = "summary", icon = icon("list")),
-      menuItem("References", tabName = "ref", icon = icon("book"))
+      # menuItem("Forest Plot", tabName = "forest", icon = icon("tree")),
+      menuItem("Outcomes", tabName = "outcome", icon = icon("list"),
+               menuItem("Lower Respiratory", tabName = "low_rsp",
+                        menuItem("Introduction", tabName = "low_rsp_intro"),
+                        menuItem("Forest Plot", tabName = "low_rsp_forest"),
+                        menuItem("Conclusion", tabName = "low_rsp_conclusion")),
+               menuItem("Upper Respiratory", tabName = "up_rsp",
+                        menuItem("Introduction", tabName = "up_rsp_intro"),
+                        menuItem("Forest Plot", tabName = "up_rsp_forest"),
+                        menuItem("Conclusion", tabName = "up_rsp_conclusion"))),
+      menuItem("References", tabName = "ref", icon = icon("book")),
+      # selectInput("class",
+      #             "Outcome class",
+      #             choices = class_var,
+      #             selected = class_var[1]),
+      uiOutput("measure"),
+      uiOutput("expo_var_1"),
+      uiOutput("expo_var_2"),
+      id = "sidebar"
     )
   ),
   dashboardBody(
@@ -19,7 +35,7 @@ dashboardPage(
       tabItem(tabName = "start",
               fluidRow(
                 box(
-                  width = 12, height = 1100, solidHeader = TRUE, status = "primary",
+                  width = 12, solidHeader = TRUE, status = "primary",
                   title = "Living systematic review of effects of swine production on the health of surrounding communities",
                   h4("Introduction"),
                   p("In recent years there have been a growing concern about the harmful effects that animal facilities could have on nearby communities. 
@@ -53,22 +69,49 @@ dashboardPage(
       tabItem(tabName = "eda",
               fluidRow(
                 box(width = 12,
-                  p("The search returned 3702 citations. 16 consisting of 10 study populations were included in the analysis.
+                    p("The search returned 3702 citations. 16 consisting of 10 study populations were included in the analysis.
                     The health outcomes were lower and upper respiratory tracts, MRSA, other infectious disease, neurological, 
                     psychological, dermatological, otologic, ocular, gastrointestinal, stress and mood, and other non-infectious health outcomes."),
-                  radioGroupButtons(
-                    inputId = "eda_btn", justified = TRUE, label = "",
-                    choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp", 
-                                `<i class='fa fa-calendar-alt'></i> Timeline` = "ts", 
-                                `<i class='fa fa-poll'></i> Effect Measure` = "coef")
+                    radioGroupButtons(
+                      inputId = "eda_btn", justified = TRUE, label = "",
+                      choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp", 
+                                  `<i class='fa fa-calendar-alt'></i> Timeline` = "ts", 
+                                  `<i class='fa fa-poll'></i> Effect Measure` = "coef")
                     ),
-                  uiOutput("eda_text"),
-                  uiOutput("eda_plot")
+                    uiOutput("eda_text"),
+                    uiOutput("eda_plot")
                 )
               )
-              ),
-      ## summary ####
-      tabItem(tabName = "summary",
+      ),
+      ## low respiratory ####
+      ## * introduction ####
+      tabItem(tabName = "low_rsp_intro",
+              fluidRow(
+                box(width = 12,
+                    p("An introduction to the “outcome class” and the interpretation of the results."),
+                    p("A “map” of the studies that apply to that particular outcome.
+                       This map would look like the current map on the descriptions tab 
+                       BUT would only have the subset of papers for the outcome instead of all the papers
+                       which are what is listed on the “descriptive plots”."))
+              )),
+      ## * forest plot ####
+      tabItem(tabName = "low_rsp_forest",
+              fluidRow(
+                box(width = 12, title = "Concentrated Animal Feeding Operations (CAFOs) Data", solidHeader = T, status = "primary",
+                    column(width = 12,
+                           em("1. In the 'ROB class' column,
+                              OE: Objective Exposure; SE: Subjective Exposure; 
+                              OO: Objective Outcome; SO: Subjective Outcome."),
+                           br(),
+                           em("2. In the ROB plot, each half circle represents opinion for that 
+                              particular type of ROB from one of two independent reviewers,
+                              i.e. for each circle, left hand side half circle represents opinion 
+                              from first reviewer and  right hand side half circle from second reviewer.")
+                           )
+                )
+              )),
+      ## * conclusion ####
+      tabItem(tabName = "low_rsp_conclusion",
               fluidRow(
                 box(width = 12, solidHeader = TRUE, status = "primary", title = "Conclusions",
                     p("This review revealed that there is sufficient evidence to
@@ -91,12 +134,12 @@ dashboardPage(
                       are the outcomes of interest."),
                     plotlyOutput("bias") %>% withSpinner())
               )),
-    ## references ####  
-    tabItem(tabName = "ref",
-            fluidRow(
-              box(width = 12, height = 1000, solidHeader = TRUE, status = "primary", title = "References",
-                  div(HTML(mybib)))
-            ))
+      ## references ####  
+      tabItem(tabName = "ref",
+              fluidRow(
+                box(width = 12, solidHeader = TRUE, status = "primary", title = "References",
+                    div(HTML(mybib)))
+              ))
     )
   )
 )

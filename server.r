@@ -76,14 +76,56 @@ shinyServer(function(input, output){
     ggplotly(gg)
   })
   
+  ## forest plot ####
+  selected_class <- reactive({
+    case_when(
+      grepl("low_rsp", input$sidebar) ~ "Lower Respiratory",
+      grepl("up_rsp", input$sidebar) ~ "Upper Respiratory",
+      TRUE ~ "Other"
+    )
+  }) 
+  ## * exposure variable input ####
+  output$expo_var_1 <- renderUI({
+    choices <- dataset %>%
+      filter(Categorized.class == selected_class()) %>%
+      pull(Expo.Very.board) %>% unique() %>% sort() 
+    selectInput("expo_var_board",
+                "Broad grouped exposure variable",
+                choices = choices,
+                selected = choices[1])
+  })
+  output$expo_var_2 <- renderUI({
+    choices <- dataset %>%
+      filter(Categorized.class == selected_class(), 
+             Expo.Very.board %in% input$expo_var_board) %>%
+      pull(Expo.BitNarrow) %>% unique() %>% sort() 
+    selectInput("expo_var_naro",
+                "Narrow grouped exposure variable(s)",
+                choices = choices,
+                multiple = T,
+                selected = choices[1])
+  })
+  ## * effect measure input ####
+  output$measure <- renderUI({
+    choices <- dataset %>%
+      filter(Categorized.class %in% selected_class(),
+             Expo.Very.board %in% input$expo_var_board, 
+             Expo.BitNarrow %in% input$expo_var_naro) %>%
+      pull(Effect.measure) %>% unique() %>% sort() 
+    selectInput("effect_measure_method",
+                "Effect size (ES) measure method",
+                choices = choices,
+                selected = choices[1])
+  })
+  
   ## summary ####
   output$bias <- renderPlotly({
     gg <- r22 %>% ggplot(aes(x = `Type of Bias`, fill = Bias)) + 
       geom_bar(position = "fill") + coord_flip() + 
       scale_fill_manual(values = color_table$Color) + 
       scale_x_discrete(labels = rev(c("Overall", "Confounding", "Measurement of Exposure", 
-                                  "Measurement of Outcome", "Missing Data", "Selection",
-                                  "Selection of Report"))) +
+                                      "Measurement of Outcome", "Missing Data", "Selection",
+                                      "Selection of Report"))) +
       ylab("Ratio")
     ggplotly(gg)
   })

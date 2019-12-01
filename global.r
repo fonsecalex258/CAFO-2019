@@ -1,9 +1,10 @@
 library(shinydashboard)
+library(shinycssloaders)
+library(shinyWidgets)
 library(leaflet)
 library(plotly)
 library(timevis)
 library(tidyverse)
-library(shinycssloaders)
 
 ## read reference from external text file ####
 mybib <- readr::read_file("datasets/bib.txt")
