@@ -13,6 +13,7 @@ cafo <- readxl::read_xlsx("datasets/cafo.xlsx", sheet = "Treatment-Outcome data"
 cafo2 <- readxl::read_xlsx("datasets/cafo2.xlsx") %>% 
   select(Refid, `Author(s)`, Year, Country, State, City, lng, lat, Title, `Journal Name`)
 dataset <- readr::read_csv("datasets/CAFO_All_data_new_Aug21.csv")
+rob <- readxl::read_xlsx("datasets/cafo.xlsx", sheet = "Risk of bias")
 
 ## map data ####
 cafoo <- cafo %>% 
@@ -80,3 +81,22 @@ dataset$paperYear[idx_2417] <- 2005
 idx_4000 <- which(dataset$Refid == 4000)
 dataset$paperInfo[idx_4000] <- "Feingold et al. 2012"
 dataset$paperYear[idx_4000] <- 2012 
+
+## summary - ROB ####
+r2 <- rob %>%
+  select(Refid, ROB_confounding_paige,
+         ROB_selection_paige, ROB_measurementExposure_paige,
+         ROB_missingData_paige,  ROB_measureOutcome_paige,
+         ROB_SelectionofReportedResult_paige, ROB_overall_paige) %>% 
+  setNames(c("Refid", "Confounding", "Selection", "Measurement of Exposure",
+             "Missing Data", "Measurement of Outcome", "Selection of Report", "Overall"))
+r22 <- r2 %>% gather(key = `Type of Bias`, value = Bias, Confounding:Overall) %>% 
+  mutate(Bias = forcats::fct_relevel(Bias, "Critical","Serious", "Moderate", "Low", "Uncertain"),
+         `Type of Bias` = forcats::fct_relevel(`Type of Bias`, "Selection of Report",
+                                               "Selection", "Missing Data", "Measurement of Outcome",
+                                               "Measurement of Exposure", "Confounding", "Overall")) %>% 
+  replace_na(list(Bias = "Uncertain"))
+color_table <- tibble(
+  Bias = c("Critical", "Serious", "Moderate", "Low", "Uncertain"),
+  Color = c("firebrick2", "darkorange","yellow", "green2", "floralwhite")
+)

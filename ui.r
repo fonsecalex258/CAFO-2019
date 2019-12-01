@@ -5,8 +5,7 @@ dashboardPage(
     sidebarMenu(
       menuItem("Getting Started", tabName = "start", icon = icon("piggy-bank")),
       menuItem("Descriptive Plots", tabName = "eda", icon = icon("chart-bar")),
-      menuItem("Metafor Forest Plot", tabName = "meta_forest", icon = icon("tree")),
-      menuItem("Original Forest Plot", tabName = "org_forest", icon = icon("tree")),
+      menuItem("Forest Plot", tabName = "forest", icon = icon("tree")),
       menuItem("Summary", tabName = "summary", icon = icon("list")),
       menuItem("References", tabName = "ref", icon = icon("book"))
     )
@@ -71,7 +70,7 @@ dashboardPage(
       ## summary ####
       tabItem(tabName = "summary",
               fluidRow(
-                box(width = 12, height = 500, solidHeader = TRUE, status = "primary", title = "Conclusions",
+                box(width = 12, solidHeader = TRUE, status = "primary", title = "Conclusions",
                     p("This review revealed that there is sufficient evidence to
                       conclude that communities living in proximity to goat
                       production are at increased risk of Q fever. The association
@@ -89,7 +88,8 @@ dashboardPage(
                       health effects of living near animal production continue to
                       be of interest, then large, long-term prospective studies
                       will be required, especially if non-specific clinical symptoms
-                      are the outcomes of interest."))
+                      are the outcomes of interest."),
+                    plotlyOutput("bias") %>% withSpinner())
               )),
     ## references ####  
     tabItem(tabName = "ref",
