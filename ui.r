@@ -1,5 +1,3 @@
-library(shinydashboard)
-
 dashboardPage(
   skin = "purple",
   dashboardHeader(title = tags$span(class = "mytitle", "Updated Systematic Review on CAFO Data"), titleWidth = 450),
@@ -48,11 +46,28 @@ dashboardPage(
                   h4("Our latest Systematic Review"),
                   p("Our last review was published in 2017 and its objective was to update a systematic review of associations
                     between living near an animal feeding operation (AFO) and human health.Our research question was:"),
-                  em("What are the associations between animal feeding operations and measures of the health of individuals 
+                  tags$blockquote("What are the associations between animal feeding operations and measures of the health of individuals 
                      living near animal feeding operations, but not actively engaged in livestock production?")
                 )
               )),
-      tabItem(tabName = "eda"),
+      ## descriptive plots ####
+      tabItem(tabName = "eda",
+              fluidRow(
+                box(width = 12,
+                  p("The search returned 3702 citations. 16 consisting of 10 study populations were included in the analysis.
+                    The health outcomes were lower and upper respiratory tracts, MRSA, other infectious disease, neurological, 
+                    psychological, dermatological, otologic, ocular, gastrointestinal, stress and mood, and other non-infectious health outcomes."),
+                  radioGroupButtons(
+                    inputId = "eda_btn", justified = TRUE, label = "",
+                    choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp", 
+                                `<i class='fa fa-calendar-alt'></i> Timeline` = "ts", 
+                                `<i class='fa fa-poll'></i> Effect Measure` = "coef")
+                    ),
+                  uiOutput("eda_text"),
+                  uiOutput("eda_plot")
+                )
+              )
+              ),
       ## summary ####
       tabItem(tabName = "summary",
               fluidRow(
