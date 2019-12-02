@@ -18,7 +18,7 @@ shinyServer(function(input, output){
         column(width = 6, leafletOutput("map") %>% withSpinner()),
         column(width = 6, plotlyOutput("geobar") %>% withSpinner())),
       "ts" = timevisOutput("timeline"),
-      "coef" = plotlyOutput("measure") %>% withSpinner()
+      "coef" = plotlyOutput("measure_all") %>% withSpinner()
     )
   })
   ## * geographic distribution ####
@@ -36,8 +36,10 @@ shinyServer(function(input, output){
     gg <- cafo2 %>% distinct() %>%
       group_by(Country) %>% summarise(Count = n()) %>% 
       mutate(Country = forcats::fct_reorder(factor(Country), Count)) %>%
-      ggplot(aes(x = Country, y = Count)) + geom_bar(stat = "identity") 
-    ggplotly(gg) 
+      ggplot(aes(x = Country, y = Count)) + 
+      geom_bar(aes(fill = Country), stat = "identity") +
+      scale_fill_brewer(palette = "Set2")
+    ggplotly(gg, tooltip = c("x", "y")) %>% layout(showlegend = FALSE)
   })
   ## * timeline ####
   output$timeline <- renderTimevis({
@@ -59,7 +61,7 @@ shinyServer(function(input, output){
     timevis(datt)
   })
   ## * effect measure ####
-  output$measure <- renderPlotly({
+  output$measure_all <- renderPlotly({
     ## Rearrange the studies by increasing order
     dataset2 <- dataset %>% 
       mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))),
@@ -76,7 +78,7 @@ shinyServer(function(input, output){
     ggplotly(gg)
   })
   
-  ## forest plot ####
+  ## forest fitlers ####
   selected_class <- reactive({
     case_when(
       grepl("low_rsp", input$sidebar) ~ "Lower Respiratory",
@@ -89,7 +91,7 @@ shinyServer(function(input, output){
     choices <- dataset %>%
       filter(Categorized.class == selected_class()) %>%
       pull(Expo.Very.board) %>% unique() %>% sort() 
-    selectInput("expo_var_board",
+    selectInput("expo_b",
                 "Broad grouped exposure variable",
                 choices = choices,
                 selected = choices[1])
@@ -97,9 +99,9 @@ shinyServer(function(input, output){
   output$expo_var_2 <- renderUI({
     choices <- dataset %>%
       filter(Categorized.class == selected_class(), 
-             Expo.Very.board %in% input$expo_var_board) %>%
+             Expo.Very.board %in% input$expo_b) %>%
       pull(Expo.BitNarrow) %>% unique() %>% sort() 
-    selectInput("expo_var_naro",
+    selectInput("expo_n",
                 "Narrow grouped exposure variable(s)",
                 choices = choices,
                 multiple = T,
@@ -109,16 +111,43 @@ shinyServer(function(input, output){
   output$measure <- renderUI({
     choices <- dataset %>%
       filter(Categorized.class %in% selected_class(),
-             Expo.Very.board %in% input$expo_var_board, 
-             Expo.BitNarrow %in% input$expo_var_naro) %>%
+             Expo.Very.board %in% input$expo_b, 
+             Expo.BitNarrow %in% input$expo_n) %>%
       pull(Effect.measure) %>% unique() %>% sort() 
-    selectInput("effect_measure_method",
+    selectInput("effect_m",
                 "Effect size (ES) measure method",
                 choices = choices,
                 selected = choices[1])
   })
   
-  ## summary ####
+  ## lower respiratory ####
+  ## * forest plot ####
+  forest_data <- reactive({
+    forest_data <- dataset %>% filter(
+      Categorized.class == selected_class(),
+      Expo.Very.board == input$expo_b,
+      Expo.BitNarrow %in% input$expo_n,
+      Effect.measure == input$effect_m) %>% 
+      select(Refid, Expo.Very.board, Expo.BitNarrow, Effect.measure,
+             Outcome.variable, Exposure.measure, Subcategory,
+             Effect.measure.1, Lower, Upper,
+             one_of(ROB_cols)) %>% 
+      mutate(
+        Exposure.measure = ifelse(!is.na(Subcategory),
+                                  sprintf("%s (%s)", Exposure.measure, Subcategory),
+                                  Exposure.measure),
+        interval = sprintf("(%.2f, %.2f)", Lower, Upper),
+        id = factor(1:n()) %>% forcats::fct_reorder(Effect.measure.1)) %>%
+      replace_na(list(ROB_overall_second = "Uncertain")) %>% 
+      distinct() 
+  })
+  output$low_rsp_dt <- DT::renderDataTable({
+    forest_dt(forest_data())
+  })
+  output$low_rsp_plotly <- renderPlotly({
+    forest_plotly(forest_data(), input$low_rsp_dt_rows_current)
+  })
+  ## * summary ####
   output$bias <- renderPlotly({
     gg <- r22 %>% ggplot(aes(x = `Type of Bias`, fill = Bias)) + 
       geom_bar(position = "fill") + coord_flip() + 

@@ -98,16 +98,18 @@ dashboardPage(
       tabItem(tabName = "low_rsp_forest",
               fluidRow(
                 box(width = 12, title = "Concentrated Animal Feeding Operations (CAFOs) Data", solidHeader = T, status = "primary",
-                    column(width = 12,
-                           em("1. In the 'ROB class' column,
-                              OE: Objective Exposure; SE: Subjective Exposure; 
-                              OO: Objective Outcome; SO: Subjective Outcome."),
-                           br(),
-                           em("2. In the ROB plot, each half circle represents opinion for that 
-                              particular type of ROB from one of two independent reviewers,
-                              i.e. for each circle, left hand side half circle represents opinion 
-                              from first reviewer and  right hand side half circle from second reviewer.")
-                           )
+                    em("1. In the 'ROB class' column,
+                       OE: Objective Exposure; SE: Subjective Exposure; 
+                       OO: Objective Outcome; SO: Subjective Outcome."),
+                    br(),
+                    em("2. In the ROB plot, each half circle represents opinion for that 
+                        particular type of ROB from one of two independent reviewers,
+                        i.e. for each circle, left hand side half circle represents opinion 
+                        from first reviewer and  right hand side half circle from second reviewer."),
+                    hr(),
+                    DT::dataTableOutput("low_rsp_dt") %>% withSpinner(),
+                    hr(),
+                    plotlyOutput("low_rsp_plotly", height = "500px") %>% withSpinner()
                 )
               )),
       ## * conclusion ####

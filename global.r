@@ -5,6 +5,7 @@ library(leaflet)
 library(plotly)
 library(timevis)
 library(tidyverse)
+library(DT)
 
 ## read reference from external text file ####
 mybib <- readr::read_file("datasets/bib.txt")
@@ -83,21 +84,83 @@ idx_4000 <- which(dataset$Refid == 4000)
 dataset$paperInfo[idx_4000] <- "Feingold et al. 2012"
 dataset$paperYear[idx_4000] <- 2012 
 
+## forest plot ####
+## ROB columns
+ROB_cols <- grep("ROB_", names(dataset), value = TRUE)[c(1:7, 9:15)]
+
 ## summary - ROB ####
+bias_types <- c("Confounding", "Selection of Participants", "Measurement of Exposures",
+                "Missing Data", "Measurement of Outcome", "Selection of Reported Result")
 r2 <- rob %>%
   select(Refid, ROB_confounding_paige,
          ROB_selection_paige, ROB_measurementExposure_paige,
          ROB_missingData_paige,  ROB_measureOutcome_paige,
          ROB_SelectionofReportedResult_paige, ROB_overall_paige) %>% 
-  setNames(c("Refid", "Confounding", "Selection", "Measurement of Exposure",
-             "Missing Data", "Measurement of Outcome", "Selection of Report", "Overall"))
+  setNames(c("Refid", bias_types, "Overall"))
 r22 <- r2 %>% gather(key = `Type of Bias`, value = Bias, Confounding:Overall) %>% 
   mutate(Bias = forcats::fct_relevel(Bias, "Critical","Serious", "Moderate", "Low", "Uncertain"),
-         `Type of Bias` = forcats::fct_relevel(`Type of Bias`, "Selection of Report",
-                                               "Selection", "Missing Data", "Measurement of Outcome",
-                                               "Measurement of Exposure", "Confounding", "Overall")) %>% 
+         `Type of Bias` = forcats::fct_relevel(`Type of Bias`, "Selection of Reported Result",
+                                               "Selection of Participants", "Missing Data", "Measurement of Outcome",
+                                               "Measurement of Exposures", "Confounding", "Overall")) %>% 
   replace_na(list(Bias = "Uncertain"))
 color_table <- tibble(
   Bias = c("Critical", "Serious", "Moderate", "Low", "Uncertain"),
-  Color = c(rev(RColorBrewer::brewer.pal(4, "Reds")), "#bdbdbd")
+  Color = c(RColorBrewer::brewer.pal(4, "RdYlGn"), "#bdbdbd")
 )
+pal <- color_table$Color
+names(pal) <- color_table$Bias
+
+## DT ####
+forest_dt <- function(forest_data){
+  forest_data %>% 
+    select(Refid, Outcome.variable:Exposure.measure,
+           Effect.measure.1, interval, ROB_overall_paige) %>% 
+    mutate_at(vars(Refid:Exposure.measure), funs(as.factor)) %>% 
+    datatable(
+      colnames = c("Effect size" = 5, "Confidence interval" = 6, "Overall risk of bias" = 7),
+      filter = list(position = "top"), class = "display compact",
+      options = list(order = list(list(4, "desc")),
+                     autoWidth = FALSE,
+                     columnDefs = list(
+                       list(className = "dt-center", targets = c(1, 4, 5)),
+                       list(width = "50px", targets = 1),
+                       list(width = "100px", targets = 4),
+                       list(width = "150px", targets = 5)
+                     )
+      )) %>% 
+    formatRound("Effect size", 2)
+}
+
+## plotly ####
+forest_plotly <- function(forest_data, rowIndex){
+  forest_data <- forest_data %>% filter(id %in% rowIndex)
+  p1 <- plot_ly(
+    forest_data,
+    x = ~Effect.measure.1, y = ~id,
+    color = ~ROB_overall_paige,
+    colors = pal,
+    type = "scatter", mode = "markers",
+    hoverinfo = "text",
+    text = ~sprintf("Row index: %s\nEffect size: %.2f (%.2f, %.2f)\nOverall risk of bias: %s",
+                    id, Effect.measure.1, Lower, Upper, ROB_overall_paige),
+    error_x = ~list(type = "data", color = "black",
+                    symmetric = FALSE,
+                    array = Upper-Effect.measure.1,
+                    arrayminus = Effect.measure.1-Lower)) %>% 
+    layout(xaxis = list(title = "Effect size"),
+           yaxis = list(title = "Row index"))
+  p1$elementId <- NULL
+  plotly_data <- forest_data %>% select(id, contains("paige"), -ROB_overall_paige) %>%  
+    setNames(c("id", bias_types)) %>% gather(source, rate, -id) %>% 
+    replace_na(list(rate = "Uncertain"))
+  p2 <- plotly_data %>% plot_ly(
+    x = ~source, y = ~id, 
+    color = ~rate, colors = pal,
+    type = "scatter", mode = "markers",
+    marker = list(size = 10, symbol = "square"),
+    hoverinfo = "text",
+    text = ~sprintf("Row index: %s\nSource of bias: %s\nRating: %s",
+                    id, source, rate))
+  p2$elementId <- NULL
+  subplot(style(p1, showlegend = FALSE), p2, widths = c(0.7, 0.3), shareY = TRUE, titleY = FALSE)
+}
