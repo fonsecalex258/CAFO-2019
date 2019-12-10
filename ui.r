@@ -8,7 +8,7 @@ dashboardPage(
       # menuItem("Forest Plot", tabName = "forest", icon = icon("tree")),
       menuItem("Outcomes", tabName = "outcome", icon = icon("list"),
                menuItem("Lower Respiratory", tabName = "low_rsp",
-                        menuItem("Introduction", tabName = "low_rsp_intro"),
+                        menuItem("Introduction-1", tabName = "low_rsp_intro"),
                         menuItem("Forest Plot", tabName = "low_rsp_forest"),
                         menuItem("Conclusion", tabName = "low_rsp_conclusion")),
                menuItem("Upper Respiratory", tabName = "up_rsp",
