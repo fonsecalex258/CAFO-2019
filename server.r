@@ -60,23 +60,37 @@ shinyServer(function(input, output){
     )
     timevis(datt)
   })
-  ## * effect measure ####
-  output$measure_all <- renderPlotly({
-    ## Rearrange the studies by increasing order
-    dataset2 <- dataset %>% 
-      mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))),
-             Effect.measure = recode(Effect.measure,
-                                     beta = "Beta", `beta p value` =  "Beta p Value",
-                                     OR = "Odds Ratio", `OR p value` = "Odds Ratio p Value",
-                                     PR = "Prevalence Ratio"))
-    ##Recode some of the variables
-    gg <- dataset2 %>% ggplot(aes(x = paperInfo)) +
-      geom_bar(aes(fill = Effect.measure)) + coord_flip() + 
-      scale_fill_brewer(palette = "Set2") +
-      labs(x = "", fill = "Effect Measure") + 
-      ylab("Number of Reported Outcomes")
-    ggplotly(gg)
-  })
+ 
+##Outcomes_by_paper_plot
+output$measure_all <- renderPlotly({
+  dataset2 <- dataset %>% 
+    mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))),
+           Categorized.class = recode(Categorized.class,
+                                      `Antimicrobial resistance` = "Antimicrobial resistance", 
+                                      `Dermatologic` =  "Skin",
+                                      Eye = "Eye or Ear", 
+                                      `Gastrointestinal diseases` = "Gastrointestinal diseases",
+                                      `Live style`= "Other",
+                                      `Lower Respiratory`="Lower Respiratory",
+                                      Neurologic="Neurologic",
+                                      Other="Other",
+                                      Otologic = "Eye or Ear",
+                                      Psychological = 'Mental Health',
+                                      Stress  = 'Mental Health',
+                                      `Upper Respiratory`="Upper Respiratory"))
+  
+  
+  gg <- dataset2 %>% ggplot(aes(x = paperInfo)) +
+    geom_bar(aes(fill = Categorized.class)) + coord_flip() + 
+    scale_fill_brewer(palette = "Set3") +
+    labs(x = "", fill = "Health Outcome Group") +
+    xlab("Study") +
+    ylab("Number of Reported Outcomes") + theme(plot.background = element_rect(fill = "#BFD5E3"),
+                                                panel.background = element_rect(fill = "white"),
+                                                axis.line.x = element_line(color = "red"))
+  ggplotly(gg)
+})
+  
   
   ## forest fitlers ####
   selected_class <- reactive({

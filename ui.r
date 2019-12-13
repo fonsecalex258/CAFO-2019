@@ -1,14 +1,17 @@
 dashboardPage(
   skin = "purple",
-  dashboardHeader(title = tags$span(class = "mytitle", "Updated Systematic Review on CAFO Data"), titleWidth = 450),
+  dashboardHeader(
+    title = tags$span(class = "mytitle", "Human Health and Living Near Animal Production Facilities"), 
+  titleWidth = 650
+  ),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Getting Started", tabName = "start", icon = icon("piggy-bank")),
-      menuItem("Descriptive Plots", tabName = "eda", icon = icon("chart-bar")),
+      menuItem("Background", tabName = "start", icon = icon("piggy-bank")),
+      menuItem("About the Studies", tabName = "eda", icon = icon("chart-bar")),
       # menuItem("Forest Plot", tabName = "forest", icon = icon("tree")),
-      menuItem("Outcomes", tabName = "outcome", icon = icon("list"),
+      menuItem("Health Outcomes", tabName = "outcome", icon = icon("list"),
                menuItem("Lower Respiratory", tabName = "low_rsp",
-                        menuItem("Introduction-1", tabName = "low_rsp_intro"),
+                        menuItem("Introduction", tabName = "low_rsp_intro"),
                         menuItem("Forest Plot", tabName = "low_rsp_forest"),
                         menuItem("Conclusion", tabName = "low_rsp_conclusion")),
                menuItem("Upper Respiratory", tabName = "up_rsp",
@@ -36,7 +39,7 @@ dashboardPage(
               fluidRow(
                 box(
                   width = 12, solidHeader = TRUE, status = "primary",
-                  title = "Living systematic review of effects of swine production on the health of surrounding communities",
+                  title = "Living systematic review of effects of animal production on the health of surrounding communities",
                   h4("Introduction"),
                   p("In recent years there have been a growing concern about the harmful effects that animal facilities could have on nearby communities. 
                   Regarding the swine industry, it has been suggested that facilities that confine animals indoors for feeding might represent a health
@@ -46,7 +49,7 @@ dashboardPage(
                   p("1.", a("First Systematic Review", href = "https://systematicreviewsjournal.biomedcentral.com/articles/10.1186/s13643-017-0465-z")),
                   p("2.", a("Second Systematic Review", href = "https://systematicreviewsjournal.biomedcentral.com/articles/10.1186/s13643-017-0465-z")),
                   hr(),
-                  h4("What is a Living systematic review?"),
+                  h4("What is a Living Systematic Review?"),
                   p("Systematic reviews that are continually updated, incorporating relevant new evidence as it becomes available.
                   This term means that rather than being a static publication in a peer reviewed journal, 
                   the review is housed on this website allowing for more timely updates and more accessible information."),
@@ -69,8 +72,8 @@ dashboardPage(
       tabItem(tabName = "eda",
               fluidRow(
                 box(width = 12,
-                    p("The search returned 3702 citations. 16 consisting of 10 study populations were included in the analysis.
-                    The health outcomes were lower and upper respiratory tracts, MRSA, other infectious disease, neurological, 
+                    p("The literture about human health impacts of living near production animals is quite limited. After conducting an exhaustive search, our team identified 16 studies consisting of 10 study populations to include in the analysis.
+                    Those 16 studies were conducted in only three countries. The health outcomes were lower and upper respiratory tracts, MRSA, other infectious disease, neurological, 
                     psychological, dermatological, otologic, ocular, gastrointestinal, stress and mood, and other non-infectious health outcomes."),
                     radioGroupButtons(
                       inputId = "eda_btn", justified = TRUE, label = "",
@@ -92,7 +95,8 @@ dashboardPage(
                     p("A “map” of the studies that apply to that particular outcome.
                        This map would look like the current map on the descriptions tab 
                        BUT would only have the subset of papers for the outcome instead of all the papers
-                       which are what is listed on the “descriptive plots”."))
+                       which are what is listed on the “descriptive plots”.")),
+                div(img(src = "example_figure.png", height = 500, width = 1100), style="text-align: center;")
               )),
       ## * forest plot ####
       tabItem(tabName = "low_rsp_forest",
