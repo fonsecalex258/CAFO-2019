@@ -79,7 +79,7 @@ dashboardPage(
                       inputId = "eda_btn", justified = TRUE, label = "",
                       choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp", 
                                   `<i class='fa fa-calendar-alt'></i> Timeline` = "ts", 
-                                  `<i class='fa fa-poll'></i> Effect Measure` = "coef")
+                                  `<i class='fa fa-poll'></i> Health Outcome` = "coef")
                     ),
                     uiOutput("eda_text"),
                     uiOutput("eda_plot")
@@ -96,7 +96,15 @@ dashboardPage(
                        This map would look like the current map on the descriptions tab 
                        BUT would only have the subset of papers for the outcome instead of all the papers
                        which are what is listed on the “descriptive plots”.")),
-                div(img(src = "example_figure.png", height = 500, width = 1100), style="text-align: center;")
+                 hr(),
+                   radioGroupButtons(
+                     inputId = "low_res_btn", justified = TRUE, label = "",
+                     choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp",
+                                 `<i class='fa fa-calendar-alt'></i> Timeline` = "ts",
+                                 `<i class='fa fa-poll'></i> Lower Respiratory Outcome` = "coef")
+                  ),
+                   uiOutput("low_res_intro_text"),
+                   uiOutput("low_res_intro_plot")
               )),
       ## * forest plot ####
       tabItem(tabName = "low_rsp_forest",

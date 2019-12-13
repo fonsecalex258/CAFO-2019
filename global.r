@@ -164,3 +164,19 @@ forest_plotly <- function(forest_data, rowIndex){
   p2$elementId <- NULL
   subplot(style(p1, showlegend = FALSE), p2, widths = c(0.7, 0.3), shareY = TRUE, titleY = FALSE)
 }
+
+######################
+#### low_res_map
+## map data ####
+cafoo_low_res <- cafo %>% 
+  mutate(Country = ifelse(Refid %in% c(648, 690), "Germany",
+                          ifelse(Refid %in% c(81, 203), "Netherlands", "United States"))) %>% 
+  # mutate(`State` = ifelse(Refid %in% c(64, 690, 743, 288), NA,
+  #                         ifelse(Refid %in% c(81, 203), NA, "North Carolina"))) %>% 
+  mutate(long = ifelse(Country == "Germany", 13.404954,
+                       ifelse(Country == "Netherlands", 4.899431, -78.644257))) %>% 
+  mutate(lat = ifelse(Country == "Germany", 52.520008,
+                      ifelse(Country == "Netherlands", 52.379189, 35.787743))) %>% 
+  distinct(Refid, .keep_all = TRUE) %>% 
+  group_by(Country, long, lat) %>% 
+  summarise(`Number of Studies` = n())
