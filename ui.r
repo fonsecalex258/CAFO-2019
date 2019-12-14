@@ -1,8 +1,8 @@
 dashboardPage(
   skin = "purple",
   dashboardHeader(
-    title = tags$span(class = "mytitle", "Human Health and Living Near Animal Production Facilities"), 
-  titleWidth = 650
+    title = tags$span(class = "mytitle", "Human Health and Living Near Livestock Production Facilities"), 
+  titleWidth = 750
   ),
   dashboardSidebar(
     sidebarMenu(
@@ -13,6 +13,7 @@ dashboardPage(
                menuItem("Lower Respiratory", tabName = "low_rsp",
                         menuItem("Introduction", tabName = "low_rsp_intro"),
                         menuItem("Forest Plot", tabName = "low_rsp_forest"),
+                        menuItem("Risk of Bias", tabName = "low_rsp_risk_of_bias"),
                         menuItem("Conclusion", tabName = "low_rsp_conclusion")),
                menuItem("Upper Respiratory", tabName = "up_rsp",
                         menuItem("Introduction", tabName = "up_rsp_intro"),
@@ -124,10 +125,20 @@ dashboardPage(
                     plotlyOutput("low_rsp_plotly", height = "500px") %>% withSpinner()
                 )
               )),
+      
+      ## * Risk of Bias ####
+      tabItem(tabName = "low_rsp_risk_of_bias",
+              fluidRow(
+                box(width = 12, solidHeader = TRUE, status = "primary", title = "Risk of Bias for Lower Respiratory Disease",
+                    p("Risk of Bias plot"),
+                    plotlyOutput("bias") %>% withSpinner()
+                    )
+              )), 
+    
       ## * conclusion ####
       tabItem(tabName = "low_rsp_conclusion",
               fluidRow(
-                box(width = 12, solidHeader = TRUE, status = "primary", title = "Conclusions",
+                box(width = 12, solidHeader = TRUE, status = "primary", title = "Conclusions about Lower Respiratory Disease",
                     p("This review revealed that there is sufficient evidence to
                       conclude that communities living in proximity to goat
                       production are at increased risk of Q fever. The association
@@ -145,9 +156,10 @@ dashboardPage(
                       health effects of living near animal production continue to
                       be of interest, then large, long-term prospective studies
                       will be required, especially if non-specific clinical symptoms
-                      are the outcomes of interest."),
-                    plotlyOutput("bias") %>% withSpinner())
+                      are the outcomes of interest.")
+              )
               )),
+      
       ## references ####  
       tabItem(tabName = "ref",
               fluidRow(
