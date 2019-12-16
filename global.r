@@ -84,6 +84,18 @@ idx_4000 <- which(dataset$Refid == 4000)
 dataset$paperInfo[idx_4000] <- "Feingold et al. 2012"
 dataset$paperYear[idx_4000] <- 2012 
 
+## outcome data ####
+dataset <- dataset %>% 
+  mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))),
+         Categorized.class = recode(
+           Categorized.class,
+           `Dermatologic` =  "Skin",
+           Eye = "Eye or Ear", 
+           `Live style`= "Other",
+           Otologic = "Eye or Ear",
+           Psychological = 'Mental Health',
+           Stress  = 'Mental Health'))
+
 ## forest plot ####
 ## ROB columns
 ROB_cols <- grep("ROB_", names(dataset), value = TRUE)[c(1:7, 9:15)]

@@ -60,128 +60,20 @@ shinyServer(function(input, output){
     )
     timevis(datt)
   })
-  ##Outcomes_by_paper_plot
+  ## * outcome ####
   output$measure_all <- renderPlotly({
-    dataset2 <- dataset %>% 
-      mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))),
-             Categorized.class = recode(Categorized.class,
-                                        `Antimicrobial resistance` = "Antimicrobial resistance", 
-                                        `Dermatologic` =  "Skin",
-                                        Eye = "Eye or Ear", 
-                                        `Gastrointestinal diseases` = "Gastrointestinal diseases",
-                                        `Live style`= "Other",
-                                        `Lower Respiratory`="Lower Respiratory",
-                                        Neurologic="Neurologic",
-                                        Other="Other",
-                                        Otologic = "Eye or Ear",
-                                        Psychological = 'Mental Health',
-                                        Stress  = 'Mental Health',
-                                        `Upper Respiratory`="Upper Respiratory"))
-    
-    
-    gg <- dataset2 %>% ggplot(aes(x = paperInfo)) +
+    gg <- dataset %>% ggplot(aes(x = paperInfo)) +
       geom_bar(aes(fill = Categorized.class)) + coord_flip() + 
       scale_fill_brewer(palette = "Set3") +
       labs(x = "", fill = "Health Outcome Group") +
       xlab("Study") +
-      ylab("Number of Reported Outcomes") + theme(plot.background = element_rect(fill = "#BFD5E3"),
-                                                  panel.background = element_rect(fill = "white"),
-                                                  axis.line.x = element_line(color = "grey"))
+      ylab("Number of Reported Outcomes") + 
+      theme(plot.background = element_rect(fill = "#BFD5E3"),
+            panel.background = element_rect(fill = "white"),
+            axis.line.x = element_line(color = "grey"))
     ggplotly(gg)
   })
-  #############################################################
-  ##Lower_respir_plots
-  output$low_res_intro_text <- renderUI({
-    switch(
-      input$low_res_btn,
-      "sp" = p("Most articles related to lower respiratory disease were published in ???? and ???."),
-      "ts" = p("This plot shows the date of publication of studies related to lower respiratory disease included in the review"),
-      "coef" = p("The following table shows the number of reported outcomes (i.e lower and upper respiratory tracts, MRSA etc)
-                    and the type of measure of effect for each of the 16 studies.")
-    )
-  })
-  ## * switch plot ####
-  output$low_res_intro_plot <- renderUI({
-    switch(
-      input$low_res_btn,
-      "sp" = fluidRow(
-        column(width = 6, leafletOutput("map_low_res") %>% withSpinner()),
-        column(width = 6, plotlyOutput("geobar_low_res") %>% withSpinner())),
-      "ts" = timevisOutput("timeline_low_res"),
-      "coef" = plotlyOutput("measure_all_low_res") %>% withSpinner()
-    )
-  })
   
-  ## * geographic distribution ####
-  output$map_low_res <- renderLeaflet({
-    leaflet(cafoo) %>%
-      addProviderTiles(providers$Stamen.TonerLite,
-                       options = providerTileOptions(noWrap = TRUE)) %>%
-      setView(-40.679728, 34.738366, zoom = 2) %>%  ## Set/fix the view of the map
-      addCircleMarkers(lng = cafoo$long, lat = cafoo$lat,
-                       radius = log(cafoo$`Number of Studies`)*8,
-                       popup = ~paste("Country:", cafoo$Country, "<br>",
-                                      "Number of Studies:", cafoo$`Number of Studies`))
-  })
-  output$geobar_low_res <- renderPlotly({
-    gg <- cafo2 %>% distinct() %>%
-      group_by(Country) %>% summarise(Count = n()) %>%
-      mutate(Country = forcats::fct_reorder(factor(Country), Count)) %>%
-      ggplot(aes(x = Country, y = Count)) +
-      geom_bar(aes(fill = Country), stat = "identity") +
-      scale_fill_brewer(palette = "Set2")
-    ggplotly(gg, tooltip = c("x", "y")) %>% layout(showlegend = FALSE)
-  })
-  ## * timeline ####
-  output$timeline_low_res <- renderTimevis({
-    ## Only select authors and year information columns
-    timedata <- dataset %>% select(paperInfo, paperYear) %>% distinct() %>%
-      ## Extract only author names from paperInfo column
-      ## Extract string comes before the period
-      mutate(Author = sub("\\..*", "", paperInfo))
-    # timedata$paperYear[8] <- 2006  Fixed missing data on the original dataset
-    timedata2 <- timedata %>% select(paperYear, Author)
-    ## Insert into a dataframe
-    datt <- data.frame(
-      ## make it reactive
-      id = 1:nrow(timedata2),
-      content = timedata2$Author,
-      start = timedata2$paperYear,
-      end = NA
-    )
-    timevis(datt)
-  })
-  ##Outcomes_by_paper_plot
-  output$measure_all_low_res <- renderPlotly({
-    dataset_low_res <- dataset %>%
-      filter(Categorized.class == "Lower Respiratory") %>%
-      mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))), 
-             Categorized.class = recode(Categorized.class,
-                                        `Antimicrobial resistance` = "Antimicrobial resistance",
-                                        `Dermatologic` =  "Skin",
-                                        Eye = "Eye or Ear",
-                                        `Gastrointestinal diseases` = "Gastrointestinal diseases",
-                                        `Live style`= "Other",
-                                        `Lower Respiratory`="Lower Respiratory",
-                                        Neurologic="Neurologic",
-                                        Other="Other",
-                                        Otologic = "Eye or Ear",
-                                        Psychological = 'Mental Health',
-                                        Stress  = 'Mental Health',
-                                        `Upper Respiratory`="Upper Respiratory"))
-    
-    
-    gg_low_res <- dataset_low_res %>% ggplot(aes(x = paperInfo)) +
-      geom_bar(aes(fill = Outcome.variable)) + coord_flip() +
-      scale_fill_brewer(palette = "Set3") +
-      labs(x = "", fill = "Health Outcome Group") +
-      xlab("Study") +
-      ylab("Number of Reported Outcomes") + theme(plot.background = element_rect(fill = "#BFD5E3"),
-                                                  panel.background = element_rect(fill = "white"),
-                                                  axis.line.x = element_line(color = "grey"))
-    ggplotly(gg_low_res)
-  })
-  ##############
   ## forest fitlers ####
   selected_class <- reactive({
     case_when(
@@ -190,6 +82,10 @@ shinyServer(function(input, output){
       TRUE ~ "Other"
     )
   }) 
+  selected_id <- reactive({
+    dataset %>% filter(Categorized.class==selected_class()) %>% 
+      pull(Refid) %>% unique()
+  })
   ## * exposure variable input ####
   output$expo_var_1 <- renderUI({
     choices <- dataset %>%
@@ -225,6 +121,84 @@ shinyServer(function(input, output){
   })
   
   ## lower respiratory ####
+  ## * intro #####
+  output$low_res_intro_text <- renderUI({
+    switch(
+      input$low_res_btn,
+      "sp" = p("Most articles related to lower respiratory disease were published in ???? and ???."),
+      "ts" = p("This plot shows the date of publication of studies related to lower respiratory disease included in the review"),
+      "coef" = p("The following table shows the number of reported outcomes (i.e lower and upper respiratory tracts, MRSA etc)
+                    and the type of measure of effect for each of the 16 studies.")
+    )
+  })
+  output$low_res_intro_plot <- renderUI({
+    switch(
+      input$low_res_btn,
+      "sp" = fluidRow(
+        column(width = 6, leafletOutput("map_low_res") %>% withSpinner()),
+        column(width = 6, plotlyOutput("geobar_low_res") %>% withSpinner())),
+      "ts" = timevisOutput("timeline_low_res"),
+      "coef" = plotlyOutput("measure_all_low_res") %>% withSpinner()
+    )
+  })
+  
+  ## ** geographic distribution ####
+  output$map_low_res <- renderLeaflet({
+    leaflet(cafoo) %>%
+      addProviderTiles(providers$Stamen.TonerLite,
+                       options = providerTileOptions(noWrap = TRUE)) %>%
+      setView(-40.679728, 34.738366, zoom = 2) %>%  ## Set/fix the view of the map
+      addCircleMarkers(lng = cafoo$long, lat = cafoo$lat,
+                       radius = log(cafoo$`Number of Studies`)*8,
+                       popup = ~paste("Country:", cafoo$Country, "<br>",
+                                      "Number of Studies:", cafoo$`Number of Studies`))
+  })
+  output$geobar_low_res <- renderPlotly({
+    gg <- cafo2 %>% filter(Refid %in% selected_id()) %>% distinct() %>%
+      group_by(Country) %>% summarise(Count = n()) %>%
+      mutate(Country = forcats::fct_reorder(factor(Country), Count)) %>%
+      ggplot(aes(x = Country, y = Count)) +
+      geom_bar(aes(fill = Country), stat = "identity") +
+      scale_fill_brewer(palette = "Set2")
+    ggplotly(gg, tooltip = c("x", "y")) %>% layout(showlegend = FALSE)
+  })
+  ## ** timeline ####
+  output$timeline_low_res <- renderTimevis({
+    ## Only select authors and year information columns
+    timedata <- dataset %>% 
+      filter(Categorized.class == selected_class()) %>% 
+      select(paperInfo, paperYear) %>% distinct() %>%
+      ## Extract only author names from paperInfo column
+      ## Extract string comes before the period
+      mutate(Author = sub("\\..*", "", paperInfo))
+    # timedata$paperYear[8] <- 2006  Fixed missing data on the original dataset
+    timedata2 <- timedata %>% select(paperYear, Author)
+    ## Insert into a dataframe
+    datt <- data.frame(
+      ## make it reactive
+      id = 1:nrow(timedata2),
+      content = timedata2$Author,
+      start = timedata2$paperYear,
+      end = NA
+    )
+    timevis(datt)
+  })
+  ## ** outcome ####
+  output$measure_all_low_res <- renderPlotly({
+    # browser()
+    gg_low_res <- dataset %>%
+      filter(`Categorized.class` == selected_class()) %>% 
+      ggplot(aes(x = paperInfo)) +
+      geom_bar(aes(fill = Outcome.variable)) + coord_flip() +
+      scale_fill_brewer(palette = "Set3") +
+      labs(x = "", fill = "Health Outcome Group") +
+      xlab("Study") +
+      ylab("Number of Reported Outcomes") + 
+      theme(plot.background = element_rect(fill = "#BFD5E3"),
+            panel.background = element_rect(fill = "white"),
+            axis.line.x = element_line(color = "grey"))
+    ggplotly(gg_low_res) %>% layout(showlegend = FALSE)
+  })
   ## * forest plot ####
   forest_data <- reactive({
     forest_data <- dataset %>% filter(
@@ -251,9 +225,10 @@ shinyServer(function(input, output){
   output$low_rsp_plotly <- renderPlotly({
     forest_plotly(forest_data(), input$low_rsp_dt_rows_current)
   })
-  ## * summary ####
+  ## * risk of bias ####
   output$bias <- renderPlotly({
-    gg <- r22 %>% ggplot(aes(x = `Type of Bias`, fill = Bias)) + 
+    gg <- r22 %>% filter(Refid %in% selected_id()) %>% 
+      ggplot(aes(x = `Type of Bias`, fill = Bias)) + 
       geom_bar(position = "fill") + coord_flip() + 
       scale_fill_manual(values = color_table$Color) + 
       scale_x_discrete(labels = rev(c("Overall", "Confounding", "Measurement of Exposure", 

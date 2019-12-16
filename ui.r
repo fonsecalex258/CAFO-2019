@@ -4,6 +4,7 @@ dashboardPage(
     title = tags$span(class = "mytitle", "Human Health and Living Near Livestock Production Facilities"), 
     titleWidth = 630
   ),
+  ## menu ####
   dashboardSidebar(
     sidebarMenu(
       menuItem("Background", tabName = "start", icon = icon("piggy-bank")),
@@ -35,7 +36,7 @@ dashboardPage(
       tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
     ),
     tabItems(
-      ## getting started ####
+      ## background ####
       tabItem(tabName = "start",
               fluidRow(
                 box(
@@ -69,7 +70,7 @@ dashboardPage(
                      living near animal feeding operations, but not actively engaged in livestock production?")
                 )
               )),
-      ## descriptive plots ####
+      ## about the studies ####
       tabItem(tabName = "eda",
               fluidRow(
                 box(width = 12,
@@ -126,7 +127,7 @@ dashboardPage(
                 )
               )),
       
-      ## * Risk of Bias ####
+      ## * risk of bias ####
       tabItem(tabName = "low_rsp_risk_of_bias",
               fluidRow(
                 box(width = 12, solidHeader = TRUE, status = "primary", title = "Risk of Bias for Lower Respiratory Disease",
