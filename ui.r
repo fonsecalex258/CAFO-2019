@@ -2,7 +2,7 @@ dashboardPage(
   skin = "purple",
   dashboardHeader(
     title = tags$span(class = "mytitle", "Human Health and Living Near Livestock Production Facilities"), 
-  titleWidth = 750
+    titleWidth = 630
   ),
   dashboardSidebar(
     sidebarMenu(
@@ -96,17 +96,17 @@ dashboardPage(
                     p("A “map” of the studies that apply to that particular outcome.
                        This map would look like the current map on the descriptions tab 
                        BUT would only have the subset of papers for the outcome instead of all the papers
-                       which are what is listed on the “descriptive plots”.")),
-                 hr(),
-                   radioGroupButtons(
-                     inputId = "low_res_btn", justified = TRUE, label = "",
-                     choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp",
-                                 `<i class='fa fa-calendar-alt'></i> Timeline` = "ts",
-                                 `<i class='fa fa-poll'></i> Lower Respiratory Outcome` = "coef")
-                  ),
-                   uiOutput("low_res_intro_text"),
-                   uiOutput("low_res_intro_plot")
-              )),
+                       which are what is listed on the “descriptive plots”."),
+                    radioGroupButtons(
+                      inputId = "low_res_btn", justified = TRUE, label = "",
+                      choices = c(`<i class='fa fa-globe'></i> Geographical Distribution` = "sp",
+                                  `<i class='fa fa-calendar-alt'></i> Timeline` = "ts",
+                                  `<i class='fa fa-poll'></i> Lower Respiratory Outcome` = "coef")
+                    ),
+                    uiOutput("low_res_intro_text"),
+                    uiOutput("low_res_intro_plot")
+                    )
+                )),
       ## * forest plot ####
       tabItem(tabName = "low_rsp_forest",
               fluidRow(
@@ -132,9 +132,9 @@ dashboardPage(
                 box(width = 12, solidHeader = TRUE, status = "primary", title = "Risk of Bias for Lower Respiratory Disease",
                     p("Risk of Bias plot"),
                     plotlyOutput("bias") %>% withSpinner()
-                    )
+                )
               )), 
-    
+      
       ## * conclusion ####
       tabItem(tabName = "low_rsp_conclusion",
               fluidRow(
@@ -157,7 +157,7 @@ dashboardPage(
                       be of interest, then large, long-term prospective studies
                       will be required, especially if non-specific clinical symptoms
                       are the outcomes of interest.")
-              )
+                )
               )),
       
       ## references ####  
