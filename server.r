@@ -117,7 +117,7 @@ shinyServer(function(input, output){
     selectInput("effect_m",
                 "Effect size (ES) measure method",
                 choices = choices,
-                selected = choices[1])
+                selected = "OR")
   })
   
   ## lower respiratory ####
