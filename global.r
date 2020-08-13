@@ -6,27 +6,40 @@ library(plotly)
 library(timevis)
 library(tidyverse)
 library(DT)
+library(readxl)
+
 
 ## read reference from external text file ####
 mybib <- readr::read_file("datasets/bib.txt")
 
 ## read files ####
+testtimeline <- readxl::read_xlsx("datasets/testtimeline.xlsx")
 cafo <- readxl::read_xlsx("datasets/cafo.xlsx", sheet = "Treatment-Outcome data")
 cafo2 <- readxl::read_xlsx("datasets/cafo2.xlsx") %>% 
   select(Refid, `Author(s)`, Year, Country, State, City, lng, lat, Title, `Journal Name`)
+cafo2 <- cafo2 %>% mutate(abbr = ifelse (Country == "USA", "us", ifelse(Country == "Netherlands", "nl","de" ) ))
+cafo3 <- cafo2 %>% distinct() %>%
+  group_by(Country, Title, Year, abbr) %>% summarise(Count = n())
+cafo3$Nation <- sprintf ('<img src = "https://flagpedia.net/data/flags/w2560/%s.png" height="25" ></img>', cafo3$abbr)
+cafo3 <- cafo3[c(6, 1, 2, 3)]
 dataset <- readr::read_csv("datasets/CAFO_All_data_new_Aug21.csv")
 rob <- readxl::read_xlsx("datasets/cafo.xlsx", sheet = "Risk of bias")
-
+forest <- read_excel("datasets/forest.xlsx")
+forest123 <- read_excel("datasets/forest123.xlsx")
+#forest <- forest %>% mutate(inter = ifelse(is.na(lowerci), yi, paste(forest$yi,"[",forest$lowerci, ",", forest$upperci,"]")), Reference = paste(forest$id, ".", forest$study))
+forest <- forest %>% mutate(inter = ifelse(is.na(lowerci), yi, paste(forest$yi,"[",forest$lowerci, ",", forest$upperci,"]")), Reference = paste(forest123$study, "(",forest123$id, ")"))
+#forest123 <- forest123 %>% mutate( Reference = paste(forest123$id, ".", forest123$study))
+forest123 <- forest123 %>% mutate( Reference = paste(forest123$study, "(",forest123$id, ")" ))
 ## map data ####
 cafoo <- cafo %>% 
   mutate(Country = ifelse(Refid %in% c(648, 690, 743, 288), "Germany",
                           ifelse(Refid %in% c(81, 203), "Netherlands", "United States"))) %>% 
   # mutate(`State` = ifelse(Refid %in% c(64, 690, 743, 288), NA,
   #                         ifelse(Refid %in% c(81, 203), NA, "North Carolina"))) %>% 
-  mutate(long = ifelse(Country == "Germany", 13.404954,
-                       ifelse(Country == "Netherlands", 4.899431, -78.644257))) %>% 
-  mutate(lat = ifelse(Country == "Germany", 52.520008,
-                      ifelse(Country == "Netherlands", 52.379189, 35.787743))) %>% 
+  mutate(long = ifelse(Country == "Germany", 10.44768,
+                       ifelse(Country == "Netherlands", 5.2913, -98.5795))) %>% 
+  mutate(lat = ifelse(Country == "Germany", 51.16338,
+                      ifelse(Country == "Netherlands", 52.1326, 39.8283))) %>% 
   distinct(Refid, .keep_all = TRUE) %>% 
   group_by(Country, long, lat) %>% 
   summarise(`Number of Studies` = n())
@@ -84,6 +97,8 @@ idx_4000 <- which(dataset$Refid == 4000)
 dataset$paperInfo[idx_4000] <- "Feingold et al. 2012"
 dataset$paperYear[idx_4000] <- 2012 
 
+
+
 ## outcome data ####
 dataset <- dataset %>% 
   mutate(paperInfo = factor(paperInfo, levels=names(sort(table(paperInfo), increasing=TRUE))),
@@ -102,22 +117,23 @@ ROB_cols <- grep("ROB_", names(dataset), value = TRUE)[c(1:7, 9:15)]
 
 ## summary - ROB ####
 bias_types <- c("Confounding", "Selection of Participants", "Measurement of Exposures",
-                "Missing Data", "Measurement of Outcome", "Selection of Reported Result")
+                "Missing Data", "Measurement of Outcome", "Selection of Reported Result", "Measurement of Interventions")
 r2 <- rob %>%
-  select(Refid, ROB_confounding_paige,
+  select(Refid,Categorized.class,ROB_confounding_paige,
          ROB_selection_paige, ROB_measurementExposure_paige,
          ROB_missingData_paige,  ROB_measureOutcome_paige,
-         ROB_SelectionofReportedResult_paige, ROB_overall_paige) %>% 
-  setNames(c("Refid", bias_types, "Overall"))
+         ROB_SelectionofReportedResult_paige,ROB_measurementInterventions_paige,ROB_overall_paige) %>% 
+  setNames(c("Refid", "Categorized.class",bias_types, "Overall"))
 r22 <- r2 %>% gather(key = `Type of Bias`, value = Bias, Confounding:Overall) %>% 
   mutate(Bias = forcats::fct_relevel(Bias, "Critical","Serious", "Moderate", "Low", "Uncertain"),
          `Type of Bias` = forcats::fct_relevel(`Type of Bias`, "Selection of Reported Result",
-                                               "Selection of Participants", "Missing Data", "Measurement of Outcome",
-                                               "Measurement of Exposures", "Confounding", "Overall")) %>% 
+                                               "Selection of Participants", "Missing Data", "Measurement of Interventions","Measurement of Outcome",
+                                               "Measurement of Exposures", "Confounding","Overall")) %>% 
   replace_na(list(Bias = "Uncertain"))
 color_table <- tibble(
   Bias = c("Critical", "Serious", "Moderate", "Low", "Uncertain"),
-  Color = c(RColorBrewer::brewer.pal(4, "RdYlGn"), "#bdbdbd")
+  #Color = c(RColorBrewer::brewer.pal(4, "RdYlGn"), "#bdbdbd")
+  Color = c("red", "salmon","lightgreen","forestgreen" , "wheat")
 )
 pal <- color_table$Color
 names(pal) <- color_table$Bias
